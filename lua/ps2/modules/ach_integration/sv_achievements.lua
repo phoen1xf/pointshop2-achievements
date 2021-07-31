@@ -41,7 +41,9 @@ function meta:LoadAchievements()
 	if !self:IsValid() then return end
 	
 	self.AchievementData = {}
-		
+	
+	print(self.kPlayerId)
+
 	AchievementsModel.findAllByOwnerId( self.kPlayerId )
 	:Then( function( achievements )
 			
@@ -172,7 +174,7 @@ function meta:BroadcastAchievement(fileName, TTTDelay)
 					local SalePrice = itemClass:GetBuyPrice( self ).points * Pointshop2.GetSetting( "Pointshop 2", "BasicSettings.SellRatio" )
 					self:PS2_AddStandardPoints( SalePrice, "Item to Points Conversion")
 				else
-					-- When there's a dedicated function in Pointshop2.
+					self:PS2_EasyAddItem( itemClass.className )
 				end
 				
 			end
@@ -192,9 +194,16 @@ function meta:BroadcastAchievement(fileName, TTTDelay)
 	end
 end
 
-hook.Add("LibK_PlayerInitialSpawn", "LoadAchievements", function(ply)
-	timer.Simple(10, function() -- Hm.
-		if !ply:IsValid() then return end
-		ply:LoadAchievements()
-	end)
+hook.Add("PlayerInitialSpawn", "LoadAchievements", function(ply)
+	--if !ply:IsValid() then return end
+	--ply:LoadAchievements()
+	--this doesnt work, net is unreliable here
 end)
+
+util.AddNetworkString( "achievements_readyfornetworking" )
+net.Receive( "achievements_readyfornetworking", function( len, ply )
+	if (ply._rl_load or 0) > CurTime() then return end
+	ply._rl_load = CurTime() + 5 -- once every 5 seconds, ratelimit
+
+	ply:LoadAchievements()
+end )

@@ -1,4 +1,4 @@
-LocalPlayer().AchievementData = {}
+Local_AchievementData = {}
 
 net.Receive("Achievement_Init", function(len) 
 	local Data = net.ReadTable()
@@ -7,7 +7,7 @@ net.Receive("Achievement_Init", function(len)
 		Ps2Achievements:includeFolder( "ps2_achievements" ) -- Validation incase they didn't load originally when they should have :O
 	end
 	
-	LocalPlayer().AchievementData = Data
+	Local_AchievementData = Data
 	
 	hook.Run("PS2_AchievementsUpdate")
 end)
@@ -16,7 +16,7 @@ net.Receive("Achievement_Update", function(len)
 	local fileName = net.ReadString()
 	local amount = net.ReadUInt(32)
 	
-	LocalPlayer().AchievementData[fileName] = amount
+	Local_AchievementData[fileName] = amount
 	
 	hook.Run("PS2_AchievementsUpdate", fileName, amount)
 	
@@ -53,3 +53,9 @@ end)
 local function ShowSexyPopup(achievement)
 	print("coming soon, I need a design!")
 end
+
+-- let's tell the server we are ready because gmod is shit and unreliable with PlayerInitialSpawn
+hook.Add( "InitPostEntity", "achievements_readyfornetworking", function()
+	net.Start( "achievements_readyfornetworking" )
+	net.SendToServer()
+end )

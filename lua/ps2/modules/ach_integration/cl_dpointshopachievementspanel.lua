@@ -21,11 +21,17 @@ function PANEL:Init()
 	self:SetSkin( Pointshop2.Config.DermaSkin )
 	
 	self.ProgressPanel = vgui.Create("DPanel", self)
-	self.ProgressPanel:Dock(TOP)
+
 	self.ProgressPanel:DockMargin(15, 15, 15, 15)
 	self.ProgressPanel:SetTall(78)
 	Derma_Hook( self.ProgressPanel, "Paint", "Paint", "InnerPanel" )
+		
+	self.ProgressPanel:InvalidateParent(true)
+	self.ProgressPanel:InvalidateChildren(true)
+	self.ProgressPanel:InvalidateLayout(true)
 	
+	self.ProgressPanel:Dock(TOP)
+
 	if IsValid(self.CategorySelector) then self.CategorySelector:Remove() end
 	self.CategorySelector = vgui.Create( "DComboBox", self )
 	self.CategorySelector:SetPos( 15, 96 )
@@ -49,6 +55,7 @@ function PANEL:Init()
 end
 
 hook.Add("PS2_AchievementsUpdate", "UpdateAchievements", function( fileName, amount )
+	print("reloading achievements")
 	if IsValid(Pointshop2.Achievements) then Pointshop2.Achievements:UpdateAndList() end
 end)
 
@@ -61,12 +68,20 @@ function PANEL:UpdateAndList(category)
 	
 	local CurAchieved = 0
 	for _, Ach in pairs(Ps2Achievements.Achievements) do
-		if LocalPlayer().AchievementData[Ach.fileName] != nil and LocalPlayer().AchievementData[Ach.fileName] >= Ach.Max then
+		if Local_AchievementData[Ach.fileName] != nil and Local_AchievementData[Ach.fileName] >= Ach.Max then
 			Ach.Achieved = true
 			CurAchieved = CurAchieved + 1
 		end
 	end
-		
+
+	self:InvalidateParent(true)
+	self:InvalidateChildren(true)
+	self:InvalidateLayout(true)
+
+	self.ProgressPanel:InvalidateParent(true)
+	self.ProgressPanel:InvalidateChildren(true)
+	self.ProgressPanel:InvalidateLayout(true)
+
 	if IsValid(self.Progress) then self.Progress:Remove() end
 	self.Progress = vgui.Create("DLabel", self.ProgressPanel)
 	self.Progress:SetFont("PS2_MediumLarge")
@@ -74,6 +89,11 @@ function PANEL:UpdateAndList(category)
 	self.Progress:SetText("Progress")
 	self.Progress:SetPos(15, 10)
 	self.Progress:SizeToContents()
+
+	local pan_w = 970 -- CHANGE THIS IF YOUR MENUSIZE IS DIFFERENT AS I GAVE UP ON DOCKING AS THE WIDTH ISN'T PASSED THE SAME FRAME
+	local bar_w = pan_w - 80
+	local box_w = pan_w - 20 
+	print(pan_w)
 	
 	if IsValid(self.ProgressCount) then self.ProgressCount:Remove() end
 	self.ProgressCount = vgui.Create("DLabel", self.ProgressPanel)
@@ -87,7 +107,7 @@ function PANEL:UpdateAndList(category)
 	
 	if IsValid(self.ProgressBar) then self.ProgressBar:Remove() end
 	self.ProgressBar = vgui.Create("DPanel", self.ProgressPanel)
-	self.ProgressBar:SetWide(720)
+	self.ProgressBar:SetWide( pan_w - 20 )
 	self.ProgressBar:SetPos(15, 40)
 	self.ProgressBar.Paint = function(self, w, h)
 		
@@ -103,6 +123,10 @@ function PANEL:UpdateAndList(category)
 	self.AchievementsPanel:DockMargin(15, 10, 15, 15)
 	Derma_Hook( self.AchievementsPanel, "Paint", "Paint", "InnerPanel" )
 	
+	self.AchievementsPanel:InvalidateParent(true)
+	self.AchievementsPanel:InvalidateChildren(true)
+	self.AchievementsPanel:InvalidateLayout(true)
+
 	-- Table Sorting.
 	local Ps2SortedAchievements = {}
 	for fileName, achievement in pairs(Ps2Achievements.Achievements) do 
@@ -119,7 +143,7 @@ function PANEL:UpdateAndList(category)
 	for k, achievement in pairs(Ps2SortedAchievements) do 
 		if (category and achievement.Category) and Ps2Achievements.CategoryNames[achievement.Category] != category then continue end
 		
-		if achievement.Secret and ( !LocalPlayer().AchievementData[achievement.fileName] or LocalPlayer().AchievementData[achievement.fileName] < achievement.Max ) then continue end -- SECRET ACHIEVEMENTS :D
+		if achievement.Secret and ( !Local_AchievementData[achievement.fileName] or Local_AchievementData[achievement.fileName] < achievement.Max ) then continue end -- SECRET ACHIEVEMENTS :D
 		
 		if firstmade then marge = 0 end
 		firstmade = true
@@ -127,6 +151,10 @@ function PANEL:UpdateAndList(category)
 		AP:SetTall(118)
 		AP:Dock(TOP)
 		AP:DockMargin(15, marge, 0, 9)	
+
+		AP:InvalidateParent(true)
+		AP:InvalidateChildren(true)
+		AP:InvalidateLayout(true)
 
 		AP.Paint = function(self, w, h)
 			if (self:IsHovered( ) or self:IsChildHovered( 3 )) and achievement.Enabled then
@@ -142,7 +170,7 @@ function PANEL:UpdateAndList(category)
 		end
 		
 		AP.BOX = vgui.Create("DPanel", AP)
-		AP.BOX:SetWide(610)
+		AP.BOX:SetWide( box_w )
 		AP.BOX:SetTall(72)
 		AP.BOX:SetPos(103, 5)
 		AP.BOX.Paint = function(self, w, h)
@@ -150,17 +178,17 @@ function PANEL:UpdateAndList(category)
 		end
 		
 		AP.PROGBOX = vgui.Create("DPanel", AP)
-		AP.PROGBOX:SetWide(610)
+		AP.PROGBOX:SetWide( box_w )
 		AP.PROGBOX:SetTall(30)
 		AP.PROGBOX:SetPos(103, 82)
 		AP.PROGBOX.Paint = function(self, w, h)
 			draw.RoundedBox(4, 0, 0, w, h, Color( 49, 49, 49 ))
 		end
 		
-		local perc = ((LocalPlayer().AchievementData[achievement.fileName] or 0) / achievement.Max)
+		local perc = ((Local_AchievementData[achievement.fileName] or 0) / achievement.Max)
 		
 		AP.PROGBOX.PROG = vgui.Create("DPanel", AP.PROGBOX)
-		AP.PROGBOX.PROG:SetWide(580)
+		AP.PROGBOX.PROG:SetWide( bar_w )
 		AP.PROGBOX.PROG:SetTall(19)
 		AP.PROGBOX.PROG:SetPos(15, 6)
 		AP.PROGBOX.PROG:SetContentAlignment(5)
@@ -176,13 +204,13 @@ function PANEL:UpdateAndList(category)
 		AP.PROGBOX.LABEL = vgui.Create("DLabel", AP.PROGBOX)
 		AP.PROGBOX.LABEL:SetFont("PS2_MediumLargeBold")
 		AP.PROGBOX.LABEL:SetColor(Color(0,0,0))
-		AP.PROGBOX.LABEL:SetText((LocalPlayer().AchievementData[achievement.fileName] or 0).."/"..achievement.Max)
+		AP.PROGBOX.LABEL:SetText((Local_AchievementData[achievement.fileName] or 0).."/"..achievement.Max)
 		AP.PROGBOX.LABEL:Dock(FILL)
 		AP.PROGBOX.LABEL:SetContentAlignment(5)
 		--AP.PROGBOX.LABEL:SetPos(AP.PROGBOX:GetWide()/2-AP.PROGBOX.LABEL:GetWide()/2, 3)
 		
 		AP.ImageBG = vgui.Create("DImage", AP)
-		AP.ImageBG:SetMaterial(Material("achievements/ps_imgbg.png", "noclamp smooth"))
+		AP.ImageBG:SetMaterial(Material("achievements/ps_imgbg.png", "noclamp smooth nocull"))
 		AP.ImageBG:SetSize(96, 96)
 		AP.ImageBG:SetPos(3, 12)
 		
@@ -200,7 +228,7 @@ function PANEL:UpdateAndList(category)
 		
 		if achievement.Icon then
 			AP.AchIcon = vgui.Create("DImage", AP)
-			AP.AchIcon:SetMaterial(Material("achievements/"..achievement.Icon, "noclamp smooth"))
+			AP.AchIcon:SetMaterial(Material("achievements/"..achievement.Icon, "noclamp smooth nocull"))
 			AP.AchIcon:SetSize(96, 96)
 			AP.AchIcon:SetPos(3, 12)
 			if achievement.Achieved then

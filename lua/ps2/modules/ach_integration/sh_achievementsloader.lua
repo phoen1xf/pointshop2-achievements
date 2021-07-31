@@ -70,7 +70,8 @@ function Ps2Achievements:includeFolder( folder )
 	end
 end
 
-hook.Add("InitPostEntity", "Ps2Achievements_LoadItems", function()
+--hook.Add("InitPostEntity", "Ps2Achievements_LoadItems", function()
+LibK.InitPostEntityPromise:Then(function()
 	Ps2Achievements:includeFolder( "ps2_achievements" )
 	hook.Run( "Ps2_AchievementsLoaded" )
 end)
