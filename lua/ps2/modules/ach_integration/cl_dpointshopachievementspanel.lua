@@ -55,7 +55,6 @@ function PANEL:Init()
 end
 
 hook.Add("PS2_AchievementsUpdate", "UpdateAchievements", function( fileName, amount )
-	print("reloading achievements")
 	if IsValid(Pointshop2.Achievements) then Pointshop2.Achievements:UpdateAndList() end
 end)
 
@@ -93,7 +92,6 @@ function PANEL:UpdateAndList(category)
 	local pan_w = 970 -- CHANGE THIS IF YOUR MENUSIZE IS DIFFERENT AS I GAVE UP ON DOCKING AS THE WIDTH ISN'T PASSED THE SAME FRAME
 	local bar_w = pan_w - 80
 	local box_w = pan_w - 20 
-	print(pan_w)
 	
 	if IsValid(self.ProgressCount) then self.ProgressCount:Remove() end
 	self.ProgressCount = vgui.Create("DLabel", self.ProgressPanel)

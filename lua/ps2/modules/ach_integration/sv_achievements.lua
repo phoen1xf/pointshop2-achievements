@@ -42,8 +42,6 @@ function meta:LoadAchievements()
 	
 	self.AchievementData = {}
 	
-	print(self.kPlayerId)
-
 	AchievementsModel.findAllByOwnerId( self.kPlayerId )
 	:Then( function( achievements )
 			
